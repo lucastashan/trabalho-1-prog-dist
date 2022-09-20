@@ -30,7 +30,7 @@ public class SuperNodo {
 		datagramSocket.close();
 		while (true) {
 			peer.alive(datagramPacket);
-			Thread.sleep(2000);
+
 		}
 	}
 
