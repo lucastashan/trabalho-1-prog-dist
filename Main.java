@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-public class SuperNodo {
+public class Main {
 	static SuperPeer sp;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
