@@ -12,15 +12,15 @@ public class SuperNodo {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		String type = args[0];
-		if(type.equals("SuperPeer"))
+		if (type.equals("SuperPeer"))
 			superPeer(args[1]);
-		else if(type.equals("Peer"))
+		else if (type.equals("Peer"))
 			peer(args);
 		else
 			System.err.println("Usage: java SuperNodo <type> <name>.");
 	}
 
-	public static void peer(String[] args) throws IOException {
+	public static void peer(String[] args) throws IOException, InterruptedException {
 		Peer peer = new Peer(args[1], Integer.parseInt(args[2]), args[3], Integer.parseInt(args[4]));
 		InetAddress IPAddress = InetAddress.getByName(peer.getSpIp());
 		byte[] buffer = peer.getRegisterMessage();
@@ -28,8 +28,9 @@ public class SuperNodo {
 		DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length, IPAddress, peer.getSpPort());
 		datagramSocket.send(datagramPacket);
 		datagramSocket.close();
-		while(true) {
-			
+		while (true) {
+			peer.alive(datagramPacket);
+			Thread.sleep(2000);
 		}
 	}
 
@@ -67,7 +68,6 @@ public class SuperNodo {
 		InetAddress IPAddress = InetAddress.getByName(next_sp.getAddr());
 		// super nodo vai ficar escutando na porta
 		DatagramSocket sup_nodo_dt_socket = new DatagramSocket(Integer.parseInt(sp.getPort()));
-		
 
 		while (true) {
 			byte[] receiveData = new byte[1024];
@@ -85,15 +85,14 @@ public class SuperNodo {
 			sup_nodo_dt_socket.receive(receivePacket);
 			String messageReceive = new String(receivePacket.getData());
 			String[] split = messageReceive.split(";");
-			String type = split[split.length-1].replaceAll("\u0000.*", "");
-			System.out.println(type.length());
-			if( type.equals("peer") )
-				for(int i = 0; i < split.length-3; i++)
-					dht.DhtList.add(new DHT_Item(split[i], split[split.length-3], split[split.length-2]));
-			
+			String type = split[split.length - 1].replaceAll("\u0000.*", "");
+			System.out.println(".");
+			if (type.equals("peer"))
+				for (int i = 0; i < split.length - 3; i++)
+					dht.DhtList.add(new DHT_Item(split[i], split[split.length - 3], split[split.length - 2]));
 
-			if( type.equals("superpeer") ){
-				DHT dhtTemp = new DHT(Arrays.copyOfRange(split, 0, split.length-2), dht);
+			if (type.equals("superpeer")) {
+				DHT dhtTemp = new DHT(Arrays.copyOfRange(split, 0, split.length - 2), dht);
 				byte[] message = dhtTemp.listToMessage();
 				DatagramSocket nextPeer = new DatagramSocket();
 				DatagramPacket datagramPacket = new DatagramPacket(message, message.length, IPAddress,
@@ -109,8 +108,9 @@ public class SuperNodo {
 			// "UTF-8").replaceAll("\\x00*", "");
 			// byte[] message = dht.listToMessage();
 			// DatagramSocket nextNodo = new DatagramSocket();
-			// DatagramPacket dPacket = new DatagramPacket(message, message.length, IPAddress,
-			// 		Integer.parseInt(next_sp.getPort()));
+			// DatagramPacket dPacket = new DatagramPacket(message, message.length,
+			// IPAddress,
+			// Integer.parseInt(next_sp.getPort()));
 			// TimeUnit.SECONDS.sleep(1);
 			// nextNodo.send(dPacket);
 			// nextNodo.close();

@@ -1,4 +1,9 @@
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.util.ArrayList;
+import java.net.InetAddress;
+import java.net.SocketException;
 
 public class Peer {
     private String ip;
@@ -17,7 +22,7 @@ public class Peer {
         listArchive.add("senhas.txt");
     }
 
-    public String getSpIp(){
+    public String getSpIp() {
         return spIp;
     }
 
@@ -25,13 +30,20 @@ public class Peer {
         return spPort;
     }
 
+    public void alive(DatagramPacket datagramPacket) throws IOException {
+        DatagramSocket datagramSocket = new DatagramSocket();
+        datagramSocket.send(datagramPacket);
+        datagramSocket.close();
+        System.out.println("Eu packet IP: " + getSpIp() + " Port: " + getSpPort() + " estou vivo!");
+    }
+
     public byte[] getRegisterMessage() {
         String concat = "";
-		for (String archive : listArchive) {
-			concat = concat + archive + ";";
-		}
-        concat = concat + this.ip + ";" + this.port + ";peer" ;
-		return concat.getBytes();
+        for (String archive : listArchive) {
+            concat = concat + archive + ";";
+        }
+        concat = concat + this.ip + ";" + this.port + ";peer";
+        return concat.getBytes();
     }
-    
+
 }
