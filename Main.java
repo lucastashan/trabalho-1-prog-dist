@@ -5,6 +5,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
@@ -84,13 +86,20 @@ public class Main {
 			// declara o pacote a ser recebido
 			sup_nodo_dt_socket.receive(receivePacket);
 			String messageReceive = new String(receivePacket.getData());
+
+			if (messageReceive.equalsIgnoreCase("alive"))
+				return;
 			String[] split = messageReceive.split(";");
 			String type = split[split.length - 1].replaceAll("\u0000.*", "");
 			System.out.println(".");
-			if (type.equals("peer"))
+			if (type.equals("peer")) {
 				for (int i = 0; i < split.length - 3; i++)
 					dht.DhtList.add(new DHT_Item(split[i], split[split.length - 3], split[split.length - 2]));
 
+				InetAddress address = receivePacket.getAddress();
+				Thread peer = new Thread();
+
+			}
 			if (type.equals("superpeer")) {
 				DHT dhtTemp = new DHT(Arrays.copyOfRange(split, 0, split.length - 2), dht);
 				byte[] message = dhtTemp.listToMessage();
@@ -116,5 +125,33 @@ public class Main {
 			// nextNodo.close();
 			// System.out.println("Enviei o DTH");
 		}
+	}
+
+	public void timerAlive(InetAddress IPAddress) {
+		IPAddress.getHostAddress();
+		new Thread() {
+			@Override
+			public void run() {
+
+				TimerTask count = new TimerTask() {
+					Integer count = 0;
+
+					public void run() {
+						count++;
+						System.out.println(getCount());
+						if (count >= 10) {
+							return;
+						}
+					}
+
+					public Integer getCount() {
+						return count;
+					}
+				};
+				Timer timer = new Timer();
+				timer.schedule(count, 1000);
+			}
+		}.start();
+
 	}
 }
