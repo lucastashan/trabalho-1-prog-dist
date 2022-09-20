@@ -1,5 +1,3 @@
-package teste;
-
 import java.util.ArrayList;
 
 public class DHT {
@@ -11,7 +9,7 @@ public class DHT {
 	}
 	
 	//Inicia um DHT novo a partir de uma mensagem recebida, entao combina com os dados do DHT do supernodo atual.
-	public DHT(byte[] message, DHT dht) {
+	public DHT(String[] message, DHT dht) {
 		this.DhtList = messageToList(message);
 		mergeDHT(dht);
 	}
@@ -21,6 +19,7 @@ public class DHT {
 		for (DHT_Item i : DhtList) {
 			concat = concat + i.toString();
 		}
+		concat = concat + ";superpeer";
 		return concat.getBytes();
 	}
 	
@@ -34,11 +33,10 @@ public class DHT {
 		return list;
 	}
 
-	private ArrayList<DHT_Item> messageToList(byte[] message){
-		String stringMessage = new String(message);
+	private ArrayList<DHT_Item> messageToList(String[] message){
 		ArrayList<DHT_Item> list = new ArrayList<DHT_Item>();
 		
-		for(String s : stringMessage.split(";")) {
+		for(String s : message) {
 			list.add(new DHT_Item(s));
 		}
 		

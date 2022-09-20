@@ -1,5 +1,3 @@
-package teste;
-
 public class DHT_Item {
 	private String hash;
 	private String ip;
