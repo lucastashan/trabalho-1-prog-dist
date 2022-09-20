@@ -2,8 +2,14 @@
 
 ## Abrir o terminal
 
-### - javac \*.java
+- javac \*.java
 
-### pra iniciar um SUPER PEER: java SuperNodo SuperPeer (sp1/sp2/sp3)
+## Inicie Super Peers:
 
-### pra iniciar um PEER: java SuperNodo Peer (ip Peer) (port Peer) (ip SuperPeer) (port SuperPeer)
+- java SuperNodo SuperPeer sp1
+- java SuperNodo SuperPeer sp2
+- java SuperNodo SuperPeer sp3
+
+### inicie um PEER:
+
+- java SuperNodo Peer [ip_Peer] [port_Peer] [ip_SuperPeer] [port_SuperPeer]
