@@ -30,8 +30,10 @@ public class Peer {
         return spPort;
     }
 
-    public void alive(DatagramPacket datagramPacket) throws IOException, InterruptedException {
+    public void alive(InetAddress IPAddress) throws IOException, InterruptedException {
         DatagramSocket datagramSocket = new DatagramSocket();
+        byte[] buffer = getAliveMessage();
+        DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length, IPAddress, getSpPort());
         datagramSocket.send(datagramPacket);
         datagramSocket.close();
         System.out.println("Eu packet IP: " + getSpIp() + " Port: " + getSpPort() + " estou vivo!");
@@ -45,6 +47,11 @@ public class Peer {
         }
         concat = concat + this.ip + ";" + this.port + ";peer";
         return concat.getBytes();
+    }
+
+    public byte[] getAliveMessage() {
+        String alive_message = "alive";
+        return alive_message.getBytes();
     }
 
 }

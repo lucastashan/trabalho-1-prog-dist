@@ -29,7 +29,7 @@ public class SuperNodo {
 		datagramSocket.send(datagramPacket);
 		datagramSocket.close();
 		while (true) {
-			peer.alive(datagramPacket);
+			peer.alive(IPAddress);
 
 		}
 	}
