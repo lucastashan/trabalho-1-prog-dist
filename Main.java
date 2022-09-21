@@ -33,7 +33,6 @@ public class Main {
 		datagramSocket.send(datagramPacket);
 		Scanner input = new Scanner(System.in);
 		while (true) {
-			//peer.alive(IPAddress);
 			System.out.println("Digite um nome de recurso ou exit para sair:");
 			String resource = input.next();
 			if(resource.equals("exit"))
@@ -57,10 +56,13 @@ public class Main {
 		File snFile = new File("supernodos.txt");
 		Scanner reader = new Scanner(snFile);
 		SuperPeer next_sp = null;
-		boolean starter = true;
-		boolean last = false;
 		boolean fullTurn = false;
 		ArrayList<ActivePeer> activePeers = new ArrayList<ActivePeer>();
+		ArrayList<Request> requests = new ArrayList<Request>();
+		InetAddress addr;
+		int port;
+		byte[] response = new byte[1024];
+		DatagramPacket packet;
 
 		// inicia o super nodo passado por parametro e o nodo seguinte do anel
 		while (reader.hasNextLine()) {
@@ -73,7 +75,6 @@ public class Main {
 				} else {
 					reader = new Scanner(snFile);
 					line = reader.nextLine();
-					last = true;
 				}
 				parans = line.split("\\s");
 				next_sp = new SuperPeer(parans[0], parans[1], parans[2], parans[3]);
@@ -92,19 +93,12 @@ public class Main {
 
 		while (true) {
 			byte[] receiveData = new byte[1024];
-			if (last && starter) {
-				byte[] message = dht.listToMessage();
-				DatagramSocket nextNodo = new DatagramSocket();
-				DatagramPacket dPacket = new DatagramPacket(message, message.length, IPAddress,
-						Integer.parseInt(next_sp.getPort()));
-				nextNodo.send(dPacket);
-				nextNodo.close();
-				starter = false;
-			}
-			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+			packet = new DatagramPacket(receiveData, receiveData.length);
 			// declara o pacote a ser recebido
-			sup_nodo_dt_socket.receive(receivePacket);
-			String messageReceive = new String(receivePacket.getData());
+			sup_nodo_dt_socket.receive(packet);
+			String messageReceive = new String(packet.getData());
+			addr = packet.getAddress();
+			port = packet.getPort();
 
 			String[] split = messageReceive.split(";");
 			String type = split[split.length - 1].replaceAll("\u0000.*", "");
@@ -114,7 +108,7 @@ public class Main {
 				for (int i = 0; i < split.length - 3; i++)
 					dht.addItem(new DHT_Item(split[i], split[split.length - 3], split[split.length - 2]));
 
-				InetAddress address = receivePacket.getAddress();
+				InetAddress address = packet.getAddress();
 				ActivePeer activePeer = new ActivePeer(split[split.length - 3], Integer.parseInt(split[split.length - 2]));
 				System.out.println(address.getHostName());
 				activePeers.add(activePeer);
@@ -140,48 +134,61 @@ public class Main {
 			}
 
 			if (type.equals("request")) {
-				String hashName = Integer.toString(split[0].hashCode());
-				byte[] message = dht.listToMessage();
-				DatagramSocket datagramSocket = new DatagramSocket();
-				DatagramPacket datagramPacket = new DatagramPacket(message, message.length, IPAddress,
+				System.out.println("ip: " + addr);
+				System.out.println("port: " + port);
+				requests.add(new Request(addr, port, Integer.toString(split[0].hashCode())));
+				response = dht.listToMessage(addr, port);
+				packet = new DatagramPacket(response, response.length, IPAddress,
 						Integer.parseInt(next_sp.getPort()));
-				datagramSocket.send(datagramPacket);
-				byte[] receiveBuffer = new byte[1024];
-				DatagramPacket receiveDatagram = new DatagramPacket(receiveBuffer, receiveBuffer.length);
-				sup_nodo_dt_socket.receive(receiveDatagram);
-				byte[] peerRequester = (receiveDatagram.getAddress().getHostAddress()+":"+receiveDatagram.getPort()).getBytes();
-				// System.out.println("o request deu uma volta anel");
-				String sItens = new String(receiveDatagram.getData());
-				String[] arrItens = sItens.split(";");
-				String[] requestResult = Arrays.copyOfRange(arrItens, 0, arrItens.length - 2);
-				ArrayList<DHT_Item> itens = new ArrayList<DHT_Item>();
-				for (String item : requestResult) {
-					itens.add(new DHT_Item(item));
-				}
-				for (DHT_Item item : itens) {
-					if(item.getHash().equals(hashName)){
-						System.out.println("encontrei o arquivo, ta no ip: " + item.getIp());
-						DatagramPacket ResponsedatagramPacket = new DatagramPacket(peerRequester, peerRequester.length,
-								receivePacket.getAddress(), receivePacket.getPort());
-						datagramSocket.send(ResponsedatagramPacket);
-						System.out.println("Enviei o pacote!");
+				sup_nodo_dt_socket.send(packet);
+			}
+
+			if (type.equals("superpeer")) {
+				boolean flag = true;
+				for (Request request : requests) {
+					if ( request.addr == InetAddress.getByName(split[split.length-2]) && request.port == Integer.parseInt(split[split.length-3]) ) {
+						String[] arrItens = Arrays.copyOfRange(split, 0, split.length - 3);
+						ArrayList<DHT_Item> itens = new ArrayList<DHT_Item>();
+						boolean notFound = true;
+						for (String item : arrItens) {
+							itens.add(new DHT_Item(item));
+						}
+						for (DHT_Item item : itens) {
+							if(item.getHash().equals(request.hash)){
+								System.out.println("encontrei o arquivo, ta no ip: " + item.getIp());
+								response = item.getIp().getBytes();
+								packet = new DatagramPacket(response, response.length,
+										InetAddress.getByName(split[split.length-2]), Integer.parseInt(split[split.length-3]));
+								sup_nodo_dt_socket.send(packet);
+								System.out.println("Enviei o pacote!");
+								notFound = false;
+							}
+						}
+						if(notFound){
+							response = "Arquivo não encontrado!".getBytes();
+							DatagramPacket responsedatagramPacket = new DatagramPacket(response, response.length,
+									packet.getAddress(), packet.getPort());
+							sup_nodo_dt_socket.send(responsedatagramPacket);
+						}
+						flag = false;
 					}
 				}
-				// String ipDest = dhtTemp.getIpDestByHash(hashName);
-				// System.out.println("O IP DESTINO: " + ipDest);
-				// System.out.println("O HASHNAME: " + hashName + "!");
-				// for (String item : requestResult) {
-				// 	if(hashName.equals(item))
-				// 		System.out.println("Encontrei o arquivo.");
-				// }
-			} else if (type.equals("superpeer")) {
-				DHT dhtTemp = new DHT(Arrays.copyOfRange(split, 0, split.length - 2), dht);
-				byte[] message = dhtTemp.listToMessage();
-				DatagramSocket nextPeer = new DatagramSocket();
-				DatagramPacket datagramPacket = new DatagramPacket(message, message.length, IPAddress,
-						Integer.parseInt(next_sp.getPort()));
-				nextPeer.send(datagramPacket);
-				dhtTemp.printDHT();
+				if(flag) {
+					String[] copyArr = Arrays.copyOfRange(split, 0, split.length - 4);
+					for (String s : split) {
+						
+						System.out.println("split: "+s);
+					}
+					DHT dhtTemp = new DHT(copyArr, dht);
+					for (String s : copyArr) {
+						System.out.println(s);
+					}
+					response = dhtTemp.listToMessage(InetAddress.getByName(split[split.length-3].substring(1)), Integer.parseInt(split[split.length-2]));
+					packet = new DatagramPacket(response, response.length, IPAddress,
+							Integer.parseInt(next_sp.getPort()));
+					sup_nodo_dt_socket.send(packet);
+					dhtTemp.printDHT();
+				}
 			}
 
 			//Confere peers ativos e remove inativos

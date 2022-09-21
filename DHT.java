@@ -1,3 +1,4 @@
+import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class DHT {
@@ -24,6 +25,15 @@ public class DHT {
 			concat = concat + i.toString();
 		}
 		concat = concat + ";superpeer";
+		return concat.getBytes();
+	}
+
+	public byte[] listToMessage(InetAddress addr, int port){
+		String concat = "";
+		for (DHT_Item i : DhtList) {
+			concat = concat + i.toString();
+		}
+		concat = concat + ";" + addr + ";" + port + ";superpeer";
 		return concat.getBytes();
 	}
 	
@@ -86,8 +96,12 @@ public class DHT {
 	}
 
 	public void printDHT() {
-		for(DHT_Item i : DhtList) {
-			System.out.println(i.toString());
+		if(DhtList.size()==0){
+			System.out.println("Nenhum item no DHT.");
+		} else {
+			for(DHT_Item i : DhtList) {
+				System.out.println(i.toString());
+			}
 		}
 	}
 }
