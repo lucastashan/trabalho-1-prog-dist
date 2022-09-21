@@ -25,6 +25,7 @@ public class Main {
 
 	public static void peer(String[] args) throws IOException, InterruptedException {
 		Peer peer = new Peer(args[1], Integer.parseInt(args[2]), args[3], Integer.parseInt(args[4]));
+		new p2pPeerHeartbeat(args[1], args[2], args[3], args[4]).start();
 		InetAddress IPAddress = InetAddress.getByName(peer.getSpIp());
 		byte[] buffer = peer.getRegisterMessage();
 		DatagramSocket datagramSocket = new DatagramSocket();
@@ -59,6 +60,7 @@ public class Main {
 		boolean starter = true;
 		boolean last = false;
 		boolean fullTurn = false;
+		ArrayList<ActivePeer> activePeers = new ArrayList<ActivePeer>();
 
 		// inicia o super nodo passado por parametro e o nodo seguinte do anel
 		while (reader.hasNextLine()) {
@@ -116,8 +118,14 @@ public class Main {
 					dht.DhtList.add(new DHT_Item(split[i], split[split.length - 3], split[split.length - 2]));
 
 				InetAddress address = receivePacket.getAddress();
-				Thread peer = new Thread();
+				// Thread peer = new Thread();
+				ActivePeer activePeer = new ActivePeer(address.getHostName(), receivePacket.getPort());
+				activePeers.add(activePeer);
 
+			}
+
+			if(type.equals("heartbeat")) {
+				System.out.println("recebi heartbeat!");
 			}
 
 			if (type.equals("request")) {
