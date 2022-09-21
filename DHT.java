@@ -28,12 +28,12 @@ public class DHT {
 		return concat.getBytes();
 	}
 
-	public byte[] listToMessage(InetAddress addr, int port){
+	public byte[] listToMessage(String SPaddr, String SPport, String Paddr, String Pport,  String hash){
 		String concat = "";
 		for (DHT_Item i : DhtList) {
 			concat = concat + i.toString();
 		}
-		concat = concat + ";" + addr + ";" + port + ";superpeer";
+		concat = concat + SPaddr + ";" + SPport + ";" + Paddr + ";" + Pport + ";" + hash + ";superpeer";
 		return concat.getBytes();
 	}
 	

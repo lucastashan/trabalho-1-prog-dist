@@ -26,6 +26,10 @@ public class Peer {
         return spIp;
     }
 
+    public String getIp() {
+        return ip;
+    }
+
     public int getSpPort() {
         return spPort;
     }
