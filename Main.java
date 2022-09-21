@@ -123,13 +123,14 @@ public class Main {
 			if (type.equals("request")) {
 				String hashName = Integer.toString(split[0].hashCode());
 				byte[] message = dht.listToMessage();
-				DatagramSocket nextPeer = new DatagramSocket();
+				DatagramSocket datagramSocket = new DatagramSocket();
 				DatagramPacket datagramPacket = new DatagramPacket(message, message.length, IPAddress,
 						Integer.parseInt(next_sp.getPort()));
-				nextPeer.send(datagramPacket);
+				datagramSocket.send(datagramPacket);
 				byte[] receiveBuffer = new byte[1024];
 				DatagramPacket receiveDatagram = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 				sup_nodo_dt_socket.receive(receiveDatagram);
+				byte[] peerRequester = receiveDatagram.getAddress().getHostAddress().getBytes();
 				// System.out.println("o request deu uma volta anel");
 				String sItens = new String(receiveDatagram.getData());
 				String[] arrItens = sItens.split(";");
@@ -139,8 +140,13 @@ public class Main {
 					itens.add(new DHT_Item(item));
 				}
 				for (DHT_Item item : itens) {
-					if(item.getHash().equals(hashName))
+					if(item.getHash().equals(hashName)){
 						System.out.println("encontrei o arquivo, ta no ip: " + item.getIp());
+						DatagramPacket ResponsedatagramPacket = new DatagramPacket(peerRequester, peerRequester.length,
+								receivePacket.getAddress(), receivePacket.getPort());
+						datagramSocket.send(ResponsedatagramPacket);
+						System.out.println("Enviei o pacote!");
+					}
 				}
 				// String ipDest = dhtTemp.getIpDestByHash(hashName);
 				// System.out.println("O IP DESTINO: " + ipDest);
@@ -149,8 +155,7 @@ public class Main {
 				// 	if(hashName.equals(item))
 				// 		System.out.println("Encontrei o arquivo.");
 				// }
-			}
-			if (type.equals("superpeer")) {
+			} else if (type.equals("superpeer")) {
 				DHT dhtTemp = new DHT(Arrays.copyOfRange(split, 0, split.length - 2), dht);
 				byte[] message = dhtTemp.listToMessage();
 				DatagramSocket nextPeer = new DatagramSocket();
