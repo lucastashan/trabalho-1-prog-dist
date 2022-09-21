@@ -72,6 +72,19 @@ public class DHT {
 		return false;
 	}
 
+	public void addItem(DHT_Item item){
+		if(!contains(item)){
+			DhtList.add(item);
+		}
+	}
+
+	public void removeItems(ActivePeer p){
+		for(int i =0; i<DhtList.size();i++){
+			if(DhtList.get(i).getIp().equals(p.ip) && DhtList.get(i).getPorta().equals(Integer.toString(p.port)))
+				DhtList.remove(i);
+		}
+	}
+
 	public void printDHT() {
 		for(DHT_Item i : DhtList) {
 			System.out.println(i.toString());

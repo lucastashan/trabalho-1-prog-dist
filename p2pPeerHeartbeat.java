@@ -33,7 +33,7 @@ public class p2pPeerHeartbeat extends Thread {
 			}
 			
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(3000);
 			} catch(InterruptedException e) {
 			}
 //			System.out.println("\npulse!");

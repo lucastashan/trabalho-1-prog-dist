@@ -1,6 +1,6 @@
 public class ActivePeer {
-    private String ip;
-    private int port;
+    public String ip;
+    public int port;
     public long lastTime;
 
     public ActivePeer(String ip, int port) {

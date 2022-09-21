@@ -106,26 +106,37 @@ public class Main {
 			sup_nodo_dt_socket.receive(receivePacket);
 			String messageReceive = new String(receivePacket.getData());
 
-			if (messageReceive.equals("alive"))
-				return;
-
 			String[] split = messageReceive.split(";");
 			String type = split[split.length - 1].replaceAll("\u0000.*", "");
 			System.out.println(".");
 
 			if (type.equals("peer")) {
 				for (int i = 0; i < split.length - 3; i++)
-					dht.DhtList.add(new DHT_Item(split[i], split[split.length - 3], split[split.length - 2]));
+					dht.addItem(new DHT_Item(split[i], split[split.length - 3], split[split.length - 2]));
 
 				InetAddress address = receivePacket.getAddress();
-				// Thread peer = new Thread();
-				ActivePeer activePeer = new ActivePeer(address.getHostName(), receivePacket.getPort());
+				ActivePeer activePeer = new ActivePeer(split[split.length - 3], Integer.parseInt(split[split.length - 2]));
+				System.out.println(address.getHostName());
 				activePeers.add(activePeer);
-
 			}
 
 			if(type.equals("heartbeat")) {
 				System.out.println("recebi heartbeat!");
+				System.out.println("Ip: "+split[0]);
+				System.out.println("Porta: "+split[1]);
+				if(activePeers.size()>=1){
+					System.out.println(split[0].split("/")[0] + " : "+activePeers.get(0).ip);
+					System.out.println(split[1] + " : "+activePeers.get(0).port);
+				}
+				else{
+					System.out.println("Nenhum peer ativo!");
+				}
+				for(ActivePeer p: activePeers){
+					if(split[0].split("/")[0].equals(p.ip) && split[1].equals(Integer.toString(p.port))){
+						p.lastTime = System.currentTimeMillis();
+						System.out.println("Dei up em um tempo");
+					}
+				}
 			}
 
 			if (type.equals("request")) {
@@ -173,48 +184,17 @@ public class Main {
 				dhtTemp.printDHT();
 			}
 
+			//Confere peers ativos e remove inativos
+			for(int i=0; i<activePeers.size(); i++){
+				if((System.currentTimeMillis() - activePeers.get(i).lastTime)/1000 >= 5){
+					System.out.println("Removi um inativo do DHT: " + activePeers.get(i).port);
+					dht.removeItems(activePeers.get(i));
+					activePeers.remove(activePeers.get(i));
+				}
+			}
+
 			TimeUnit.SECONDS.sleep(1);
 			dht.printDHT();
-
-			// String dataPacket = new String(receivePacket.getData(),
-			// "UTF-8").replaceAll("\\x00*", "");
-			// byte[] message = dht.listToMessage();
-			// DatagramSocket nextNodo = new DatagramSocket();
-			// DatagramPacket dPacket = new DatagramPacket(message, message.length,
-			// IPAddress,
-			// Integer.parseInt(next_sp.getPort()));
-			// TimeUnit.SECONDS.sleep(1);
-			// nextNodo.send(dPacket);
-			// nextNodo.close();
-			// System.out.println("Enviei o DTH");
 		}
-	}
-
-	public void timerAlive(InetAddress IPAddress) {
-		IPAddress.getHostAddress();
-		new Thread() {
-			@Override
-			public void run() {
-
-				TimerTask count = new TimerTask() {
-					Integer count = 0;
-
-					public void run() {
-						count++;
-						System.out.println(getCount());
-						if (count >= 10) {
-							return;
-						}
-					}
-
-					public Integer getCount() {
-						return count;
-					}
-				};
-				Timer timer = new Timer();
-				timer.schedule(count, 1000);
-			}
-		}.start();
-
 	}
 }
