@@ -130,7 +130,7 @@ public class Main {
 				byte[] receiveBuffer = new byte[1024];
 				DatagramPacket receiveDatagram = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 				sup_nodo_dt_socket.receive(receiveDatagram);
-				byte[] peerRequester = receiveDatagram.getAddress().getHostAddress().getBytes();
+				byte[] peerRequester = (receiveDatagram.getAddress().getHostAddress()+":"+receiveDatagram.getPort()).getBytes();
 				// System.out.println("o request deu uma volta anel");
 				String sItens = new String(receiveDatagram.getData());
 				String[] arrItens = sItens.split(";");
