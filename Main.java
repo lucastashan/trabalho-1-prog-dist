@@ -28,7 +28,7 @@ public class Main {
 		new p2pPeerHeartbeat(args[1], args[2], args[3], args[4]).start();
 		InetAddress IPAddress = InetAddress.getByName(peer.getSpIp());
 		byte[] buffer = peer.getRegisterMessage();
-		DatagramSocket datagramSocket = new DatagramSocket();
+		DatagramSocket datagramSocket = new DatagramSocket(peer.getPort());
 		DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length, IPAddress, peer.getSpPort());
 		datagramSocket.send(datagramPacket);
 		Scanner input = new Scanner(System.in);
@@ -47,14 +47,19 @@ public class Main {
 			DatagramPacket receiveDatagram = new DatagramPacket(receiveBuffer, receiveBuffer.length, IPAddress,
 					peer.getPort());
 			datagramSocket.receive(receiveDatagram);
-			String peerDestination = new String(receiveBuffer);
-			peerDestination = peerDestination.replaceAll("\u0000.*", "");
-
-			if (peerDestination.length() > 0) {
-				System.out.println("Opa");
-				System.out.println(peerDestination);
-				break;
-			}
+			String[] split = (new String(receiveBuffer)).split(";");
+			if(split.length==1)
+				System.out.println("Não encontrou meu arquivo. =(");
+			else
+				System.out.println("meu arquivo ta no ip: "+split[0]+" ,porta: "+split[1]);
+				
+			//peerDestination = peerDestination.replaceAll("\u0000.*", "");
+			//System.out.println(peerDestination);
+			// if (peerDestination.length() > 0) {
+			// 	System.out.println("Opa");
+			// 	System.out.println(peerDestination);
+			// 	break;
+			// }
 		}
 		datagramSocket.close();
 		input.close();
@@ -196,7 +201,8 @@ public class Main {
 								ArrayList<DHT_Item> foundItems = temp.getItemsByHash(split[split.length - 2]);
 
 								if (foundItems.size() >= 1) {
-									System.out.println("Encontrei o arquivo, ta no ip: " + foundItems.get(0).getIp());
+									System.out.println("Encontrei o arquivo, ta no ip: " + foundItems.get(0).getIp() +
+											" porta: " + foundItems.get(0).getPorta());
 									response = (foundItems.get(0).getIp() + ";" + foundItems.get(0).getPorta())
 											.getBytes();
 								} else {
@@ -205,8 +211,8 @@ public class Main {
 								}
 
 								packet = new DatagramPacket(response, response.length,
-										InetAddress.getByName(split[split.length - 4]),
-										Integer.parseInt(split[split.length - 3]));
+										InetAddress.getByName(foundItems.get(0).getIp()),
+										Integer.parseInt(foundItems.get(0).getPorta()));
 								sup_nodo_dt_socket.send(packet);
 								System.out.println("Enviei o pacote!");
 								mensagemNaoEnviada = true;
