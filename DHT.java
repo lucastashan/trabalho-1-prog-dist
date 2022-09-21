@@ -7,6 +7,10 @@ public class DHT {
 	public DHT() {
 		this.DhtList = new ArrayList<DHT_Item>();
 	}
+
+	public DHT(ArrayList<DHT_Item> arr){
+		this.DhtList = arr;
+	}
 	
 	//Inicia um DHT novo a partir de uma mensagem recebida, entao combina com os dados do DHT do supernodo atual.
 	public DHT(String[] message, DHT dht) {
@@ -31,6 +35,15 @@ public class DHT {
 			if (i.getHash().equals(hash)) list.add(i);
 		}
 		return list;
+	}
+
+	public String getIpDestByHash (String hash){
+		
+		for(DHT_Item i : DhtList) {
+			if (i.getHash().equals(hash)) 
+				return i.getIp();
+		}
+		return "";
 	}
 
 	private ArrayList<DHT_Item> messageToList(String[] message){

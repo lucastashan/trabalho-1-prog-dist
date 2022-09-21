@@ -30,6 +30,10 @@ public class Peer {
         return spPort;
     }
 
+    public int getPort() {
+        return port;
+    }
+
     public void alive(InetAddress IPAddress) throws IOException, InterruptedException {
         DatagramSocket datagramSocket = new DatagramSocket();
         byte[] buffer = getAliveMessage();

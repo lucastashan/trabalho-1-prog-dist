@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Timer;
@@ -29,11 +30,26 @@ public class Main {
 		DatagramSocket datagramSocket = new DatagramSocket();
 		DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length, IPAddress, peer.getSpPort());
 		datagramSocket.send(datagramPacket);
-		datagramSocket.close();
+		Scanner input = new Scanner(System.in);
 		while (true) {
-			peer.alive(IPAddress);
-
+			//peer.alive(IPAddress);
+			System.out.println("Digite um nome de recurso ou exit para sair:");
+			String resource = input.next();
+			if(resource.equals("exit"))
+				break;
+			resource = resource + ";request";
+			buffer = resource.getBytes();
+			datagramPacket = new DatagramPacket(buffer, buffer.length, IPAddress, peer.getSpPort());
+			datagramSocket.send(datagramPacket);
+			byte[] receiveBuffer = new byte[1024];
+			DatagramPacket receiveDatagram = new DatagramPacket(receiveBuffer, receiveBuffer.length, IPAddress, peer.getPort());
+			datagramSocket.receive(receiveDatagram);
+			String peerDestination = new String(receiveBuffer);
+			peerDestination = peerDestination.replaceAll("\u0000.*", "");
+			System.out.println(peerDestination);
 		}
+		datagramSocket.close();
+		input.close();
 	}
 
 	public static void superPeer(String nome) throws NumberFormatException, IOException, InterruptedException {
@@ -42,6 +58,7 @@ public class Main {
 		SuperPeer next_sp = null;
 		boolean starter = true;
 		boolean last = false;
+		boolean fullTurn = false;
 
 		// inicia o super nodo passado por parametro e o nodo seguinte do anel
 		while (reader.hasNextLine()) {
@@ -87,11 +104,13 @@ public class Main {
 			sup_nodo_dt_socket.receive(receivePacket);
 			String messageReceive = new String(receivePacket.getData());
 
-			if (messageReceive.equalsIgnoreCase("alive"))
+			if (messageReceive.equals("alive"))
 				return;
+
 			String[] split = messageReceive.split(";");
 			String type = split[split.length - 1].replaceAll("\u0000.*", "");
 			System.out.println(".");
+
 			if (type.equals("peer")) {
 				for (int i = 0; i < split.length - 3; i++)
 					dht.DhtList.add(new DHT_Item(split[i], split[split.length - 3], split[split.length - 2]));
@@ -99,6 +118,37 @@ public class Main {
 				InetAddress address = receivePacket.getAddress();
 				Thread peer = new Thread();
 
+			}
+
+			if (type.equals("request")) {
+				String hashName = Integer.toString(split[0].hashCode());
+				byte[] message = dht.listToMessage();
+				DatagramSocket nextPeer = new DatagramSocket();
+				DatagramPacket datagramPacket = new DatagramPacket(message, message.length, IPAddress,
+						Integer.parseInt(next_sp.getPort()));
+				nextPeer.send(datagramPacket);
+				byte[] receiveBuffer = new byte[1024];
+				DatagramPacket receiveDatagram = new DatagramPacket(receiveBuffer, receiveBuffer.length);
+				sup_nodo_dt_socket.receive(receiveDatagram);
+				// System.out.println("o request deu uma volta anel");
+				String sItens = new String(receiveDatagram.getData());
+				String[] arrItens = sItens.split(";");
+				String[] requestResult = Arrays.copyOfRange(arrItens, 0, arrItens.length - 2);
+				ArrayList<DHT_Item> itens = new ArrayList<DHT_Item>();
+				for (String item : requestResult) {
+					itens.add(new DHT_Item(item));
+				}
+				for (DHT_Item item : itens) {
+					if(item.getHash().equals(hashName))
+						System.out.println("encontrei o arquivo, ta no ip: " + item.getIp());
+				}
+				// String ipDest = dhtTemp.getIpDestByHash(hashName);
+				// System.out.println("O IP DESTINO: " + ipDest);
+				// System.out.println("O HASHNAME: " + hashName + "!");
+				// for (String item : requestResult) {
+				// 	if(hashName.equals(item))
+				// 		System.out.println("Encontrei o arquivo.");
+				// }
 			}
 			if (type.equals("superpeer")) {
 				DHT dhtTemp = new DHT(Arrays.copyOfRange(split, 0, split.length - 2), dht);
