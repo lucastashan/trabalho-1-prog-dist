@@ -171,13 +171,13 @@ public class Main {
 					sup_nodo_dt_socket.send(packet);
 				} else if (type.equals("superpeer")) {
 
-					// System.out.println();
-					// System.out.println("Recebi uma mensagem de outro super peer");
+					System.out.println();
+					System.out.println("Recebi uma mensagem de outro super peer");
 
-					// for (String s : split) {
-					// 	System.out.print(s + " | ");
-					// }
-					// System.out.println();
+					for (String s : split) {
+						System.out.print(s + " | ");
+					}
+					System.out.println();
 
 					String[] arrItens = Arrays.copyOfRange(split, 0, split.length - 6);
 					DHT temp = new DHT(arrItens, dht);
@@ -211,8 +211,8 @@ public class Main {
 								}
 
 								packet = new DatagramPacket(response, response.length,
-										InetAddress.getByName(foundItems.get(0).getIp()),
-										Integer.parseInt(foundItems.get(0).getPorta()));
+										InetAddress.getByName(split[split.length-4]),
+										Integer.parseInt(split[split.length-3]));
 								sup_nodo_dt_socket.send(packet);
 								System.out.println("Enviei o pacote!");
 								mensagemNaoEnviada = true;
