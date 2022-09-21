@@ -89,10 +89,21 @@ public class DHT {
 	}
 
 	public void removeItems(ActivePeer p){
-		for(int i =0; i<DhtList.size();i++){
-			if(DhtList.get(i).getIp().equals(p.ip) && DhtList.get(i).getPorta().equals(Integer.toString(p.port)))
-				DhtList.remove(i);
+		while(true){
+			if(!removeItem(p))
+				break;
 		}
+	}
+
+	public boolean removeItem(ActivePeer p){
+		for(int i =0; i<DhtList.size();i++){
+			System.out.println("Item: " + DhtList.get(i).toString());
+			if(DhtList.get(i).getIp().equals(p.ip) && DhtList.get(i).getPorta().equals(Integer.toString(p.port))){
+				DhtList.remove(i);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void printDHT() {
