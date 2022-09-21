@@ -125,19 +125,19 @@ public class Main {
 					System.out.println(address.getHostName());
 					activePeers.add(activePeer);
 				} else if (type.equals("heartbeat")) {
-					System.out.println("recebi heartbeat!");
-					System.out.println("Ip: " + split[0]);
-					System.out.println("Porta: " + split[1]);
-					if (activePeers.size() >= 1) {
-						System.out.println(split[0].split("/")[0] + " : " + activePeers.get(0).ip);
-						System.out.println(split[1] + " : " + activePeers.get(0).port);
-					} else {
-						System.out.println("Nenhum peer ativo!");
-					}
+					System.out.println("Recebi heartbeat: " + split[0] + " " + split[1]);
+					// System.out.println("Ip: " + split[0]);
+					// System.out.println("Porta: " + split[1]);
+					// if (activePeers.size() >= 1) {
+					// 	System.out.println(split[0].split("/")[0] + " : " + activePeers.get(0).ip);
+					// 	System.out.println(split[1] + " : " + activePeers.get(0).port);
+					// } else {
+					// 	System.out.println("Nenhum peer ativo!");
+					// }
 					for (ActivePeer p : activePeers) {
 						if (split[0].split("/")[0].equals(p.ip) && split[1].equals(Integer.toString(p.port))) {
 							p.lastTime = System.currentTimeMillis();
-							System.out.println("Dei up em um tempo");
+							//System.out.println("Dei up em um tempo");
 						}
 					}
 				} else if (type.equals("request")) {
@@ -153,8 +153,8 @@ public class Main {
 					requests.add(new Request(split[split.length - 3], Integer.parseInt(split[split.length - 2]),
 							Integer.toString(split[0].hashCode())));
 
-					System.out.println("Salvei a seguinte requisicao");
-					requests.get(0).printRequest();
+					// System.out.println("Salvei a seguinte requisicao");
+					// requests.get(0).printRequest();
 
 					response = dht.listToMessage(sp.getAddr(), sp.getPort(), split[split.length - 3],
 							split[split.length - 2], Integer.toString(split[0].hashCode()));
@@ -166,13 +166,13 @@ public class Main {
 					sup_nodo_dt_socket.send(packet);
 				} else if (type.equals("superpeer")) {
 
-					System.out.println();
-					System.out.println("Recebi uma mensagem de outro super peer");
+					// System.out.println();
+					// System.out.println("Recebi uma mensagem de outro super peer");
 
-					for (String s : split) {
-						System.out.print(s + " | ");
-					}
-					System.out.println();
+					// for (String s : split) {
+					// 	System.out.print(s + " | ");
+					// }
+					// System.out.println();
 
 					String[] arrItens = Arrays.copyOfRange(split, 0, split.length - 6);
 					DHT temp = new DHT(arrItens, dht);
@@ -222,7 +222,8 @@ public class Main {
 								split[split.length - 4], split[split.length - 3], split[split.length - 2]);
 
 						System.out.println();
-						System.out.println("Nao sou o destino final e estou enviando: " + new String(response));
+						//System.out.println("Nao sou o destino final e estou enviando: " + new String(response));
+						System.out.println("Nao sou o destino final desta chamada e estou passando a mensagem para o proximo super peer: " + sp.getNext());
 						System.out.println();
 
 						packet = new DatagramPacket(response, response.length, IPAddress,
